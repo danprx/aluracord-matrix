@@ -41,9 +41,9 @@ export default function HomePage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: appConfig.theme.colors.primary[500],
+                    // backgroundColor: appConfig.theme.colors.primary[500],
                     backgroundImage:
-                        "url(https://virtualbackgrounds.site/wp-content/uploads/2020/08/the-matrix-digital-rain.jpg)",
+                        "url(https://virtualbackgrounds.site/wp-content/uploads/2020/07/coffee-shop.jpg)",
                     backgroundRepeat: "no-repeat",
                     backgroundSize: "cover",
                     backgroundBlendMode: "multiply",
@@ -109,12 +109,12 @@ export default function HomePage() {
 
                         <TextField
                             value={username}
-                            onChange={function (event) {
+                            onChange={(e) => {
                                 // Onde está o valor?
-                                const valor = event.target.value;
+                                const value = e.target.value;
                                 // Trocar o valor da variavel
                                 // Através do React e avise quem precisa
-                                setUsername(valor);
+                                setUsername(value);
                             }}
                             fullWidth
                             textFieldColors={{
