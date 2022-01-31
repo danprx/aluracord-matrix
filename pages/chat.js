@@ -1,19 +1,46 @@
 import { Box, Text, TextField, Image, Button } from "@skynexui/components";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import appConfig from "../config.json";
+import { createClient } from "@supabase/supabase-js";
+
+const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzY1NzQ5MSwiZXhwIjoxOTU5MjMzNDkxfQ.o4VlbHygNymn68tSNEH8GsC0OXUQ7ERZ-KXmWllhY5U";
+const SUPABASE_URL = "https://edakrcazvrbocfujersc.supabase.co";
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
     // Sua lógica vai aqui
     const [message, setMessage] = useState("");
     const [messageList, setMessageList] = useState([]);
 
+    useEffect(() => {
+        supabaseClient
+            .from("messages")
+            .select("*")
+            .order("id", { ascending: false })
+            .then(({ data }) => {
+                setMessageList(data);
+            });
+    }, []);
+
     function handleNewMessage(newMessage) {
         const message = {
-            id: messageList.length + 1,
+            // id: messageList.length + 1,
             from: "onickyy",
             text: newMessage,
         };
-        setMessageList([message, ...messageList]);
+
+        supabaseClient
+            .from("messages")
+            .insert([
+                //Tem que ser um objeto com os mesmos atributos que você criou no banco de dados!
+                message,
+            ])
+            .then(({ data }) => {
+                console.log(data);
+                setMessageList([data[0], ...messageList]);
+            });
+
         setMessage("");
     }
     // ./Sua lógica vai aqui
@@ -162,6 +189,7 @@ function MessageList({ messages }) {
                             styleSheet={{
                                 marginBottom: "8px",
                                 display: "flex",
+                                alignItems: "end",
                             }}
                         >
                             <Image
@@ -172,7 +200,7 @@ function MessageList({ messages }) {
                                     display: "inline-block",
                                     marginRight: "8px",
                                 }}
-                                src={`https://github.com/vanessametonini.png`}
+                                src={`https://github.com/${message.from}.png`}
                             />
                             <Text tag="strong">{message.from}</Text>
                             <Text
