@@ -31,7 +31,7 @@ function Title(props) {
 
 export default function HomePage() {
     // const username = "onickyy";
-    const [username, setUsername] = useState("onickyy");
+    const [username, setUsername] = useState("");
     const routing = useRouter();
 
     return (
@@ -70,9 +70,9 @@ export default function HomePage() {
                     {/* Formulário */}
                     <Box
                         as="form"
-                        onSubmit={function (event) {
-                            event.preventDefault();
-                            routing.push("/chat");
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            routing.push(`/chat?username=${username}`);
                         }}
                         styleSheet={{
                             display: "flex",
@@ -106,8 +106,8 @@ export default function HomePage() {
                                 setUsername(valor);
                             }}
                         /> */}
-
                         <TextField
+                            placeholder="Digite seu nome de usuário!"
                             value={username}
                             onChange={(e) => {
                                 // Onde está o valor?
@@ -169,7 +169,9 @@ export default function HomePage() {
                                 borderRadius: "50%",
                                 marginBottom: "16px",
                             }}
-                            src={`https://github.com/${username}.png`}
+                            src={`https://github.com/${
+                                username || "github"
+                            }.png`}
                         />
                         <Text
                             variant="body4"
@@ -181,7 +183,7 @@ export default function HomePage() {
                                 borderRadius: "1000px",
                             }}
                         >
-                            {username}
+                            {username || "Anônimo"}
                         </Text>
                     </Box>
                     {/* Photo Area */}

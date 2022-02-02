@@ -2,6 +2,8 @@ import { Box, Text, TextField, Image, Button } from "@skynexui/components";
 import React, { useEffect, useState } from "react";
 import appConfig from "../config.json";
 import { createClient } from "@supabase/supabase-js";
+import { useRouter } from "next/router";
+import { ButtonSendSticker } from "../scr/components/SendStickerButton";
 
 const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzY1NzQ5MSwiZXhwIjoxOTU5MjMzNDkxfQ.o4VlbHygNymn68tSNEH8GsC0OXUQ7ERZ-KXmWllhY5U";
@@ -9,9 +11,21 @@ const SUPABASE_URL = "https://edakrcazvrbocfujersc.supabase.co";
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function ChatPage() {
-    // Sua lógica vai aqui
+    const routing = useRouter();
+    const loggedUser = routing.query.username;
+
     const [message, setMessage] = useState("");
     const [messageList, setMessageList] = useState([]);
+    // Sua lógica vai aqui
+
+    function realTimeMessagesListener(addMessage) {
+        return supabaseClient
+            .from("messages")
+            .on("INSERT", (res) => {
+                addMessage(res.new);
+            })
+            .subscribe();
+    }
 
     useEffect(() => {
         supabaseClient
@@ -21,36 +35,41 @@ export default function ChatPage() {
             .then(({ data }) => {
                 setMessageList(data);
             });
+
+        realTimeMessagesListener((newMessage) => {
+            console.log("Nova mensagem: ", newMessage);
+            setMessageList((CurrentMessageList) => {
+                return [newMessage, ...CurrentMessageList];
+            });
+        });
     }, []);
 
     function handleNewMessage(newMessage) {
         const message = {
             // id: messageList.length + 1,
-            from: "onickyy",
+            from: loggedUser,
             text: newMessage,
         };
 
         supabaseClient
             .from("messages")
             .insert([
-                //Tem que ser um objeto com os mesmos atributos que você criou no banco de dados!
+                // Tem que ser um objeto com os mesmos atributos que você criou no banco de dados!
                 message,
             ])
             .then(({ data }) => {
-                console.log(data);
-                setMessageList([data[0], ...messageList]);
+                console.log("Criando nova mensagem: ", data);
             });
 
         setMessage("");
     }
-    // ./Sua lógica vai aqui
+    // Sua lógica vai aqui
     return (
         <Box
             styleSheet={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                // backgroundColor: appConfig.theme.colors.primary[500],
                 backgroundImage: `url(https://virtualbackgrounds.site/wp-content/uploads/2020/07/coffee-shop.jpg)`,
                 backgroundRepeat: "no-repeat",
                 backgroundSize: "cover",
@@ -85,7 +104,6 @@ export default function ChatPage() {
                         padding: "16px",
                     }}
                 >
-                    <MessageList messages={messageList} />
                     {/* {messageList.map((currentMessage) => {
                         return (
                             <li key={currentMessage.id}>
@@ -93,6 +111,8 @@ export default function ChatPage() {
                             </li>
                         );
                     })} */}
+                    <MessageList messages={messageList} />
+
                     <Box
                         as="form"
                         styleSheet={{
@@ -124,6 +144,11 @@ export default function ChatPage() {
                                     appConfig.theme.colors.neutrals[800],
                                 marginRight: "12px",
                                 color: appConfig.theme.colors.neutrals[200],
+                            }}
+                        />
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                handleNewMessage(":sticker:" + sticker);
                             }}
                         />
                     </Box>
@@ -214,7 +239,17 @@ function MessageList({ messages }) {
                                 {new Date().toLocaleDateString()}
                             </Text>
                         </Box>
-                        {message.text}
+                        {/* Declarativo */}
+                        {/* condicional:
+                        {message.text.startsWith(":sticker:").toString() */}
+
+                        {message.text.startsWith(":sticker:") ? (
+                            <Image
+                                src={message.text.replace(":sticker:", "")}
+                            />
+                        ) : (
+                            message.text
+                        )}
                     </Text>
                 );
             })}
